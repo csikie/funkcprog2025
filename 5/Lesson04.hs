@@ -88,21 +88,18 @@ fact 5 ≡⟨ nem 0 ⟩
 
 -- Definiáld a sum' függvényt, amely összegzi egy számokat tartalmazó lista elemeit.
 -- A listáról feltehető, hogy véges.
--- Mi lesz a legáltalánosabb típusa?
 sum' :: Num a => [a] -> a
 sum' [] = 0
 sum' (x:xs) = x + sum' xs
 
 -- Definiáld a product' függvényt, amely összeszorozza egy számokat tartalmazó lista elemeit.
 -- A listáról feltehető, hogy véges.
--- Mi lesz a legáltalánosabb típusa?
 product' :: Num a => [a] -> a
 product' [] = 1
 product' (x:xs) = x * product' xs
 
 -- Definiáld az elem' függvényt, amely megállapítja, hogy egy elem benne van-e egy listában.
 -- A függvénynek működnie kell végtelen listán, de csak akkor, ha a keresett elem benne van a listában. (Mert csak akkor van értelme.)
--- Mi lesz a legáltalánosabb típusa?
 elem' :: Eq a => a -> [a] -> Bool
 elem' _ [] = False
 elem' e (x:xs) = e == x || elem' e xs
@@ -111,7 +108,6 @@ elem' e (x:xs) = e == x || elem' e xs
 
 -- Definiáld a genericLength' függvényt, amely megadja, hogy egy lista hány elemű.
 -- A listáról feltehető, hogy véges.
--- Mi lesz a lehető legáltalánosabb típusa?
 genericLength' :: Num b => [a] -> b
 genericLength' [] = 0
 genericLength' (_:xs) = 1 + genericLength' xs
@@ -249,5 +245,7 @@ az adott feladatnak megfelelően fel lehet használni a számokat, számozott sz
 
 -- Feladat:
 -- Számozzuk meg egy szövegnek az egyes szavait 1-től kezdve. Az eredmény legyen egy rendezett párokból álló lista, az első komponens a szó száma, a második maga a szó.
+-- Megjegyzés: A szavakat a words függvénnyel tudjuk szétválasztani.
+-- Megjegyzés: A zip függvény a rövidebb lista hosszáig működik.
 numberWords :: String -> [(Int, String)]
 numberWords s = zip [1..] (words s) 
