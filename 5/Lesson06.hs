@@ -94,6 +94,8 @@ quickSort l@(x:xs) = quickSort [y | y <- xs, y <= x] ++ [x] ++ quickSort [y | y 
 
 -- split, merge seged fg-ek
 mergeSort :: Ord a => [a] -> [a]
+mergeSort [] = []
+mergeSort [x] = [x]
 mergeSort l = merge (mergeSort left) (mergeSort right)
   where
     (left, right) = split l
