@@ -1,64 +1,72 @@
 module Lesson07 where
 
--- Definiáld a deletions függvényt, amely egy elemet töröl egy listából az összes lehetséges módon!
--- deletions [1,2,3] == [[2,3],[1,3],[1,2]]
--- deletions "alma" == ["lma","ama","ala","alm"]
-deletions :: [a] -> [[a]]
-deletions [] = []
-deletions (x:xs) = xs : [x:y | y <- deletions xs]
+-- tipusszinonimak
 
--- Definiáld az insertions függvényt, amely beszúr egy elemet egy listába az összes lehetséges módon!
--- insertions 1 [] == [[1]]
--- insertions 0 [1,2,3] == [[0,1,2,3],[1,0,2,3],[1,2,0,3],[1,2,3,0]]
--- insertions 'a' "sdfg" == ["asdfg","sadfg","sdafg","sdfag","sdfga"]
-insertions :: a -> [a] -> [[a]]
-insertions e [] = [[e]]
-insertions e l@(x:xs) = (e:l) : [x:y | y <- insertions e xs]
-
--------------------------
--- Típusszinonimák
--------------------------
-
--- Típusszinonimák szintaxisa az alábbiként néz ki Haskellben:
--- type <Típusnév> [típusparaméterek...] = <Létező típus>
 -- type String = [Char]
-
--- Feladatok:
--- Definiáld a Point típusszinonimát, amely jelöljön egy Integer-ekből álló rendezett párt.
+-- type <Nev> = <Meglevo tipus>
 
 type Point = (Integer, Integer)
 
--- Definiáld a moveX függvényt, amely egy pontot az X-tengely mentén eltol egy adott értékkel.
--- Használjuk az előbb definiált Point típust.
 moveX :: Integer -> Point -> Point
 moveX n (x, y) = (x + n, y)
 
 type Name = String
-type BirthDay = String
-type Address = String
+type BirthDate = String
+type City = String
 type Age = Int
-type Person = (Name, BirthDay, Address, Age)
+type Person = (Name, BirthDate, City, Age)
 
 person :: Person
-person = ("Csiki Erik", "1998-06-18", "Budapest", 26)
+person = ("Erik", "1998-01-01", "Budapest", 26)
 
 type Euro = Int
 
-foo :: Euro -> Age -> Int
-foo euro age = euro + age
+eztNemKene :: Euro -> Age -> Int
+eztNemKene n x = n + x
 
 ------------------------------
--- Saját típus: data
+-- Saját típus: data, (newtype)
 ------------------------------
+{-
+Eddig volt szó listáról, rendezett n-esről, Int-ről, Integer-ről, Char-ról, Float-ról, Double-ről, Bool-ról, mint konkrét típusokról.
+Azonban ezekkel nem lehet mindent pontosan úgy elkódolni, ahogy mi szeretnénk; továbbá saját típussal sokkal olvashatóbban reprezentálhatók
+egyes műveletek eredményei, pl. tegyük fel, hogy egy elemet feltételesen szeretnénk beilleszteni egy listába. Ezen függvény típusa nagyjából az lenne, hogy:
 
--- data <Típusnév> [típusparaméterek...] = Kontruktor [típusparaméterek...] | Kontruktor2 [típusparaméterek...] | ..
+conditionalInsert :: Bool -> a -> [a] -> [a]
+
+Most honnan tudjuk, hogy a False, meg a True ez esetben mit reprezentál? Abban a pillanatban, hogy megírjuk, még emlékszünk rá; nézzünk rá egy év múlva
+csak a típusra és arra, ahol és ahogyan használjuk. Valahol kódban látunk egy olyat, hogy `conditionalInsert True 1 [2,3,4]`, nem hiszem, hogy
+emlékeznénk rá csak olvasással.
+Helyette tudunk egy saját típust definiálni:
+
+data InsertFlag = Insert | DoNotInsert
+
+conditionalInsert :: InsertFlag -> a -> [a] -> [a]
+
+Így a típusból egyből látszódik, hogy mit szeretne a függvény, illetve ha használjuk: `conditionalInsert Insert 1 [2,3,4]`, olvasásra egyből látszódik,
+hogy mit szeretnénk az értékkel csinálni.
+Maga a saját típus lényegében egy Bool, de mégis egy sokkal olvashatóbb változatát adtuk meg.
+
+----------------
+
+Ahogy korábban is láttuk megadva, saját típust definiálni a "data" kulcsszóval lehet. Szintaxisa az alábbi:
+
+data <Új típus neve> [típusváltozók...] = <Konstruktor1> [paraméterek...] | <Konstruktor2> [paraméterek...] | ...
+
+Nem kötelező típusváltozót megadni (de lehet, arról is lesz szó), továbbá a konstruktoroknak lehet, hogy van paraméterük, lehet, hogy nincs.
+-}
 
 -- Feladatok:
 -- Definiáld a Day típust, amelynek 7 paraméter nélküli konstruktora van: Mon, Tue, Wed, Thu, Fri, Sat, Sun.
 
 data Day = Mon | Tue | Wed | Thu | Fri | Sat | Sun
-  deriving Show 
+  deriving Show
 
+
+-- Kérdezzük meg ghci-től, hogy mi lesz a Fri konstruktor típusa!
+-- A konstruktorok ugyanolyan értékek/függvények, mint a többi. Annyiban speciálisak a konstruktorok, hogy ezekre lehet mintailleszteni.
+
+-- Definiáld a nextDay függvényt, amely egy adott napnak megadja, hogy mi a rákövetkező napja.
 -- Segítség: Konstruktorokkal mit lehet csinálni?
 nextDay :: Day -> Day
 nextDay Mon = Tue
@@ -67,27 +75,99 @@ nextDay Wed = Thu
 nextDay Thu = Fri
 nextDay Fri = Sat
 nextDay Sat = Sun
-nextDay Sun = Mon
+nextDay Sun = Sat
+
+-- Módosítsd a Day típust úgy, hogy a ghci meg tudja jeleníteni azt.
+
+{-
+Próbáljuk meg a ghci-ben meghívni a nextDay függvényt.
+Mi lesz az eredménye annak, hogy `nextDay Sun`?
+
+-----------------------------------
+
+Ha kipróbáltuk, hogy mi történik, akkor azt tapasztaltuk, hogy hibát kaptunk.
+A probléma az, hogy a GHCi nem tudja megjeleníteni a saját típusunkat, mert nem mondtuk meg neki, hogy hogyan kell vagy hogy meg lehet jeleníteni egyáltalán.
+Ha szeretnénk, hogy a saját típusunk megjeleníthető legyen, akkor erről a tényről a fordítót is tájékoztatni kell a következő módon:
+A saját típusunk definíciója után a "deriving" kulcsszót kell rakni, majd utána azt a típusosztályt odaírni, amelyik a megjelenítésért felelős; ez a Show.
+-}
+
+-- Módosítsd a Day típust úgy, hogy a ghci meg tudja jeleníteni azt.
+
+{-
+A deriving után legfeljebb 7 típusosztály írható rendezett n-es stílusban (alapból, mindenféle mágiázás nélkül), ezek a következők:
+- Show: értéket alakít String-gé
+- Read: String-et alakít értékké, ha tudja
+- Eq: egyenlőségvizsgálat
+- Ord: rendezhetőség
+- Enum: felsorolhatóság
+- Bounded: korlátos
+- Ix: indexelésre használt típus
+
+Most próbáljuk meg a `nextDay Sun` kifejezést kiértékelni!
+-------------------------
+Saját típusokkal is természetesen tudjuk példányosítani a típusosztályokat. Ehhez nem kell mást tenni, mint:
+
+instance <Típusosztály> <Típus> where
+  <bentebb húzva megírni a szükséges függvényeket>
+
+Hogy melyik típusosztálynak milyen függvényei vannak, azt a :i-vel meg lehet nézni.
+
+pl.
+> :i Eq
+type Eq :: Type -> Constraint
+class Eq a where
+  (==) :: a -> a -> Bool
+  (/=) :: a -> a -> Bool
+  {-# MINIMAL (==) | (/=) #-}
+  	-- Defined in ‘GHC.Classes’
+instance forall a. Eq a => Eq (Maybe a) -- Defined in ‘GHC.Maybe’
+instance Eq Integer -- Defined in ‘GHC.Num.Integer’
+instance Eq () -- Defined in ‘GHC.Classes’
+instance Eq Bool -- Defined in ‘GHC.Classes’
+instance Eq Char -- Defined in ‘GHC.Classes’
+instance Eq Double -- Defined in ‘GHC.Classes’
+instance Eq Float -- Defined in ‘GHC.Classes’
+instance Eq Int -- Defined in ‘GHC.Classes’
+instance forall a. Eq a => Eq [a] -- Defined in ‘GHC.Classes’
+instance Eq Ordering -- Defined in ‘GHC.Classes’
+instance forall a. Eq a => Eq (Solo a) -- Defined in ‘GHC.Classes’
+instance Eq Word -- Defined in ‘GHC.Classes’
+instance forall a b. (Eq a, Eq b) => Eq (Either a b) -- Defined in ‘Data.Either’
+
+Ebből két dolgot is látni:
+- Az Eq osztályba az (==) és a (/=) tartozik.
+- A MINIMAL sor megmondja, hogy melyik függvényeket KELL implementálni. A vesszővel való elválasztás és kapcsolatot, a |-pal való elválasztás pedig egy vagy kapcsolatot jelöl.
+  Eq esetén ez azt jelenti, hogy VAGY az (==)-t VAGY a (/=)-t kell implementálni.
+
+-- SZÉP KÓD: Ugyan a vagy kapcsolat nem zárja ki, hogy mindkét függvényt implementáljuk,
+             de a legsűrűbb esetben nem érdemes vaggyal elválasztott függvény mindkét felét implementálni.
+-}
 
 -- Példányosítsuk kézzel az Eq osztályt a Day típusra!
--- instance <Tipusosztaly> <Tipus> where
 
 instance Eq Day where
-    (==) Mon Mon = True
-    (==) Tue Tue = True
-    (==) Wed Wed = True
-    (==) Thu Thu = True
-    (==) Fri Fri = True
-    (==) Sat Sat = True
-    (==) Sun Sun = True
-    (==) _ _ = False
+  (==) Mon Mon = True
+  (==) Tue Tue = True
+  (==) Wed Wed = True
+  (==) Thu Thu = True
+  (==) Fri Fri = True
+  (==) Sat Sat = True
+  (==) Sun Sun = True
+  (==) _ _ = False
 
 ------------------------------------------
 -- Paraméteres konstruktorok
 ------------------------------------------
 
+{-
+Ahogy a rendezett pároknak, meg ahogy a listáknak is vannak olyan konstruktoraik, amik paramétereket várnak (pl. (,) és (:)),
+úgy mi is tudunk ilyeneket definiálni.
+-}
+
 -- Definiáld a Fruit típust, amelynek legyen három konstruktora: Grape, Apple, Pear.
 -- Ez után definiáld a FruitBatch típust, amelynek egy konstruktora van: FruitBatch, és ennek a konstruktornak két paramétere van, egy Fruit és egy Integer.
+-- Lényegében ez írja le, hogy melyik gyümölcsből hány darabom van.
+-- A konstruktoroknak szóközzel elválasztva kell átadni a paramétereit, a paraméterek az értékek típusai kell legyenek a konstruktornál.
 
 data Fruit = Grape | Apple | Pear
   deriving Show
@@ -99,24 +179,25 @@ data FruitBatch = FruitBatch Fruit Integer
 -- Nem válogatjuk külön a gyümölcsöket, csak a gyümölcsök száma az érdekes összesen.
 sumFruits :: [FruitBatch] -> Integer
 sumFruits [] = 0
-sumFruits (FruitBatch _ n:xs) = n + sumFruits xs
+-- x = FruitBatch Apple 5 | FruitBatch Grape 42
+sumFruits (FruitBatch fr n:xs) = n + sumFruits xs
 
 -- Definiáld az sumDifferentFruits függvényt, amely összeadja egy listányi FruitBatch-ben, hogy a különböző gyümölcsökből hány darabunk van.
--- Ez előtt tegyük egy kicsit beszédesebbé a típust. Definiálj 3 típusszinonimát Integer-re: NumberOfApples', NumberOfGrapes', NumberOfPears'
+-- Ez előtt tegyük egy kicsit beszédesebbé a típust. Definiálj 3 típusszinonimát Integer-re: NumberOfApples, NumberOfGrapes, NumberOfPears
 
 type NumberOfApples' = Integer
 type NumberOfGrapes' = Integer
 type NumberOfPears' = Integer
 
-sumDifferentFruits :: [FruitBatch] -> (NumberOfApples',NumberOfGrapes',NumberOfPears')
+sumDifferentFruits :: [FruitBatch] -> (NumberOfApples', NumberOfGrapes', NumberOfPears')
 sumDifferentFruits [] = (0, 0, 0)
 sumDifferentFruits (x:xs) = (a + as, g + gs, p + ps)
   where
     (as, gs, ps) = sumDifferentFruits xs
-    (a, g, p) = getFruit x
-    getFruit (FruitBatch Apple n) = (n, 0, 0)
-    getFruit (FruitBatch Grape n) = (0, n, 0)
-    getFruit (FruitBatch Pear n) = (0, 0, n)
+    (a, g, p) = getFruitCount x
+    getFruitCount (FruitBatch Apple n) = (n, 0, 0)
+    getFruitCount (FruitBatch Grape n) = (0, n, 0)
+    getFruitCount (FruitBatch Pear n) = (0, 0, n)
 
 -- A függvény írása közben esetleg tapasztalható, hogy senki nem állít meg abban, hogy az almát hozzáadjam a körtékhez.
 -- Ennek egy megoldása ugyan egyszerű, de körülményes.
@@ -254,3 +335,4 @@ Fractional: Komplex számokat osztani is lehet. :i-vel nézzük meg, hogy miket 
 instance Fractional Complex where
   (Complex a b) / (Complex c d) = Complex ((a * c + b * d) / (c^2 + d^2)) ((b * c - a * d) / (c^2 + d^2))
   fromRational a = Complex (fromRational a) 0
+

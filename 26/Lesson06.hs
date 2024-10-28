@@ -51,17 +51,3 @@ deletions (x:xs) = xs : [x:y | y <- deletions xs]
 insertions :: a -> [a] -> [[a]]
 insertions e [] = [[e]]
 insertions e l@(x:xs) = (e:l) : [x:y | y <- insertions e xs]
-
--- combinations (-1) "abcd" == []
--- combinations 0 "abcd" == [[]]
--- combinations 1 "abcd" == ["a","b","c","d"]
--- combinations 2 "abcd" == ["ab", "ac", "ad", "bc", "bd", "cd"]
--- combinations 3 "abcd" == ["abc","abd","acd","bcd"]
--- combinations 4 "abcd" == ["abcd"]
--- combinations 5 "abcd" == []
--- combinations 2 [1,1,2,2] == [[1,1],[1,2],[1,2],[1,2],[1,2],[2,2]]
--- segitseg: lista kifejezes es rekurzio
-combinations :: Int -> [a] -> [[a]]
-combinations = undefined
-
--- tipusszinonimak
