@@ -167,3 +167,6 @@ sumTree (Leaf n) = n
 sumTree (Node n left right) = n + (sumTree left) + (sumTree right) 
 
 -- Példányosítsd az Eq osztályt a bináris fára.
+instance Eq a => Eq (BinTree a) where
+  (==) (Leaf x) (Leaf y) = x == y
+  (==) (Node x left1 right1) (Node y left2 right2) = x == y && left1 == left2 && right1 == right2
