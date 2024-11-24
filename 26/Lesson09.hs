@@ -110,23 +110,50 @@ span' p (x:xs)
   where (as, bs) = span' p xs 
 
 -- Definiáld a takeWhile' függvényt, amely egy lista elejéről addig tartja meg az elemeket, amíg egy adott tulajdonság folyamatosan teljesül.
-takeWhile' :: undefined
-takeWhile' = undefined
+takeWhile' :: (a -> Bool) -> [a] -> [a]
+takeWhile' _ [] = []
+takeWhile' p (x:xs)
+  | p x = x : takeWhile' p xs
+  | otherwise = []
 
 -- Definiáld a dropWhile' függvényt, amely egy lista elejéről addig dobálja el az elemeket, amíg egy adott tulajdonság folyamatosan teljesül.
-dropWhile' :: undefined
-dropWhile' = undefined
+dropWhile' :: (a -> Bool) -> [a] -> [a]
+dropWhile' _ [] = []
+dropWhile' p l@(x:xs)
+  | p x = dropWhile' p xs
+  | otherwise = l
 
 -- Definiáld a find' függvényt, amely visszaadja az első adott tulajdonságú elemet egy listából, ha létezik olyan.
-find' :: undefined
-find' = undefined
+find' :: (a -> Bool) -> [a] -> Maybe a
+find' _ [] = Nothing
+find' p (x:xs)
+  | p x = Just x
+  | otherwise = find' p xs
 -- Az eredeti függvény a Data.List-ben található.
 
 -- Definiáld az findIndex' függvényt, amely visszaadja az első adott tulajdonságú elem indexét egy listából, ha létezik olyan.
 -- Megj.: Ugyan fel lehet használni az előző függvényt erre, de nem célszerű.
-findIndex' :: undefined
-findIndex' = undefined
+findIndex' :: (a -> Bool) -> [a] -> Maybe Int
+findIndex' p l = helper p l 0
+  where
+    helper _ [] _ = Nothing
+    helper p (x:xs) n
+      | p x = Just n
+      | otherwise = helper p xs (n+1)
+
+-- Definiáld a ($$) függvényt, amely egy függvényt alkalmaz egy értékre.
+infixr 0 $$
+($$) :: (a -> b) -> a -> b
+($$) f x = f x
+-- Az eredeti függvény a ($).
+
+{-
+addMaybe :: Maybe Int ->  Maybe Int ->  Maybe Int
+addMaybe _ Nothing = Nothing
+addMaybe Nothing _ = Nothing
+addMaybe (Just x) (Just y) = Just $ x + y
+-}
 
 -- Definiáld az app2ToFunctions függvényt magasabb rendű függvényeket használva rekurzió nélkül, amely alkalmazza a 2-es értéket egy függvényeket tartalmazó lista minden függvényén.
 app2ToFunctions :: Num a => [a -> b] -> [b]
-app2ToFunctions = undefined
+app2ToFunctions l = map ($ 2) l
